@@ -1,5 +1,3 @@
-"use client";
-
 import WorkspaceTopBar from '@/components/workspace/TopBar';
 import WorkspaceLeftSidebar from '@/components/workspace/LeftSidebar';
 import WorkspaceRightSidebar from '@/components/workspace/RightSidebar';

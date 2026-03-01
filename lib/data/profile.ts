@@ -1,0 +1,45 @@
+import { unstable_cache } from 'next/cache';
+import type { PortfolioItem } from '@/types/gallery';
+import type { UserProfile } from '@/types/profile';
+
+const profileSeedByUsername: Record<string, UserProfile> = {
+  'faiz-intifada': {
+    name: 'Faiz Intifada',
+    username: 'faiz-intifada',
+    avatar: 'https://picsum.photos/seed/user/200/200',
+    bio: 'Community Manager @aiforproductivity.id\nFounder @crtv.space @cinemart.official\nBuild crtv.space\n🔗 threads.com/@faizntfd',
+  },
+};
+
+const portfolioSeedByUsername: Record<string, PortfolioItem[]> = {
+  'faiz-intifada': [
+    { id: 1, src: 'https://picsum.photos/seed/p1/600/800', alt: 'AI Art 1', aspect: 'aspect-[3/4]', type: 'image', width: 600, height: 800 },
+    { id: 2, src: 'https://picsum.photos/seed/p2/600/600', alt: 'AI Video 1', aspect: 'aspect-square', type: 'video', width: 600, height: 600 },
+    { id: 3, src: 'https://picsum.photos/seed/p3/600/800', alt: 'AI Art 2', aspect: 'aspect-[3/4]', type: 'image', width: 600, height: 800 },
+    { id: 4, src: 'https://picsum.photos/seed/p4/600/600', alt: 'AI Art 3', aspect: 'aspect-square', type: 'image', width: 600, height: 600 },
+    { id: 5, src: 'https://picsum.photos/seed/p5/600/800', alt: 'AI Video 2', aspect: 'aspect-[3/4]', type: 'video', width: 600, height: 800 },
+    { id: 6, src: 'https://picsum.photos/seed/p6/600/600', alt: 'AI Art 4', aspect: 'aspect-square', type: 'image', width: 600, height: 600 },
+  ],
+};
+
+export function normalizeUsername(value: string): string {
+  return value.trim().replace(/^@+/, '').toLowerCase();
+}
+
+export const getProfileByUsername = unstable_cache(
+  async (username: string) => {
+    const normalizedUsername = normalizeUsername(username);
+    return profileSeedByUsername[normalizedUsername] ?? null;
+  },
+  ['profile-by-username'],
+  { revalidate: 300 }
+);
+
+export const getPortfolioByUsername = unstable_cache(
+  async (username: string) => {
+    const normalizedUsername = normalizeUsername(username);
+    return portfolioSeedByUsername[normalizedUsername] ?? [];
+  },
+  ['portfolio-by-username'],
+  { revalidate: 300 }
+);

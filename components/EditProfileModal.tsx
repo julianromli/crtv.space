@@ -1,17 +1,11 @@
 import { X } from 'lucide-react';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-
-interface Profile {
-  name: string;
-  username: string;
-  avatar: string;
-  bio: string;
-}
+import type { UserProfile } from '@/types/profile';
 
 interface EditProfileModalProps {
-  profile: Profile;
-  onSave: (profile: Profile) => void;
+  profile: UserProfile;
+  onSave: (profile: UserProfile) => void;
   onClose: () => void;
 }
 

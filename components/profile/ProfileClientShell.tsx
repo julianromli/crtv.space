@@ -1,36 +1,30 @@
 "use client";
 
-import Sidebar from '@/components/Sidebar';
-import { PlusCircle, Plus, Edit2, Heart, PlayCircle, Grid, PanelLeft } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Edit2, Grid, Heart, PanelLeft, PlayCircle, Plus, PlusCircle } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import Image from 'next/image';
-import ImageModal from '@/components/ImageModal';
-import EditProfileModal from '@/components/EditProfileModal';
+import Sidebar from '@/components/Sidebar';
 import { useSidebar } from '@/contexts/SidebarContext';
+import type { PortfolioItem } from '@/types/gallery';
+import type { UserProfile } from '@/types/profile';
 
-const portfolioItems = [
-  { id: 1, src: 'https://picsum.photos/seed/p1/600/800', alt: 'AI Art 1', aspect: 'aspect-[3/4]', type: 'image', width: 600, height: 800 },
-  { id: 2, src: 'https://picsum.photos/seed/p2/600/600', alt: 'AI Video 1', aspect: 'aspect-square', type: 'video', width: 600, height: 600 },
-  { id: 3, src: 'https://picsum.photos/seed/p3/600/800', alt: 'AI Art 2', aspect: 'aspect-[3/4]', type: 'image', width: 600, height: 800 },
-  { id: 4, src: 'https://picsum.photos/seed/p4/600/600', alt: 'AI Art 3', aspect: 'aspect-square', type: 'image', width: 600, height: 600 },
-  { id: 5, src: 'https://picsum.photos/seed/p5/600/800', alt: 'AI Video 2', aspect: 'aspect-[3/4]', type: 'video', width: 600, height: 800 },
-  { id: 6, src: 'https://picsum.photos/seed/p6/600/600', alt: 'AI Art 4', aspect: 'aspect-square', type: 'image', width: 600, height: 600 },
-];
+const ImageModal = dynamic(() => import('@/components/ImageModal'));
+const EditProfileModal = dynamic(() => import('@/components/EditProfileModal'));
 
-type PortfolioItem = (typeof portfolioItems)[number];
-
-export default function ProfilePage() {
+export default function ProfileClientShell({
+  initialProfile,
+  portfolioItems,
+}: {
+  initialProfile: UserProfile;
+  portfolioItems: PortfolioItem[];
+}) {
   const [selectedImage, setSelectedImage] = useState<PortfolioItem | null>(null);
   const [activeTab, setActiveTab] = useState<'image' | 'video'>('image');
   const [isFollowing, setIsFollowing] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [profile, setProfile] = useState({
-    name: 'Faiz Intifada',
-    username: 'faiz-intifada',
-    avatar: 'https://picsum.photos/seed/user/200/200',
-    bio: 'Community Manager @aiforproductivity.id\nFounder @crtv.space @cinemart.official\nBuild crtv.space\n🔗 threads.com/@faizntfd'
-  });
+  const [profile, setProfile] = useState(initialProfile);
 
   const { toggleSidebar, isMinimized } = useSidebar();
   const [likedItems, setLikedItems] = useState<Record<number, boolean>>({});
@@ -47,7 +41,6 @@ export default function ProfilePage() {
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0 bg-[#121212] relative">
         <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-          {/* Top Actions Bar (Aligned with Gallery Width) */}
           <div className="max-w-5xl mx-auto flex items-center justify-between mb-8">
             <button
               type="button"
@@ -56,7 +49,7 @@ export default function ProfilePage() {
             >
               <PanelLeft size={20} />
             </button>
-            
+
             <div className="flex items-center gap-3">
               <button type="button" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-[#2D2D2D] rounded-md hover:bg-[#1E1E1E] transition-colors text-sm font-semibold text-[#F3F4F6]">
                 <PlusCircle size={16} />
@@ -69,13 +62,12 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Profile Info */}
           <div className="max-w-4xl mx-auto flex flex-col items-center mb-16">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#1E1E1E] shadow-xl">
                 <Image src={profile.avatar} alt="Profile" width={160} height={160} className="w-full h-full object-cover" />
               </div>
-              
+
               <div className="flex flex-col items-center md:items-start pt-2">
                 <div className="flex flex-col md:flex-row items-center gap-4 mb-2">
                   <h1 className="text-2xl md:text-3xl font-semibold text-[#F3F4F6]">{profile.name}</h1>
@@ -92,8 +84,8 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => setIsFollowing(!isFollowing)}
                       className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-semibold transition-colors border ${
-                        isFollowing 
-                          ? 'bg-transparent border-[#2D2D2D] text-[#F3F4F6] hover:bg-[#1E1E1E]' 
+                        isFollowing
+                          ? 'bg-transparent border-[#2D2D2D] text-[#F3F4F6] hover:bg-[#1E1E1E]'
                           : 'bg-[#F3F4F6] border-[#F3F4F6] text-[#121212] hover:bg-[#E5E7EB]'
                       }`}
                     >
@@ -102,7 +94,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <p className="text-[#9CA3AF] text-base md:text-lg mb-6 font-light">@{profile.username}</p>
-                
+
                 <div className="flex items-center gap-8 text-[#F3F4F6] font-semibold text-sm md:text-base mb-6">
                   <div className="flex gap-1.5"><span className="text-white">1,204</span> <span className="text-[#9CA3AF] font-light">followers</span></div>
                   <div className="flex gap-1.5"><span className="text-white">248</span> <span className="text-[#9CA3AF] font-light">following</span></div>
@@ -117,7 +109,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Portfolio Feeds */}
           <div className="max-w-5xl mx-auto">
             <div className="border-t border-[#2D2D2D] mb-6 flex justify-center gap-8">
               <button
@@ -168,7 +159,7 @@ export default function ProfilePage() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+
                     <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
                       <div className="flex items-center gap-1.5">
                         <button
@@ -176,7 +167,7 @@ export default function ProfilePage() {
                           className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-lg transition-colors"
                           onClick={(e) => toggleLike(e, item.id)}
                         >
-                          <Heart size={14} className={likedItems[item.id] ? "fill-[#F04E2E] text-[#F04E2E]" : ""} />
+                          <Heart size={14} className={likedItems[item.id] ? 'fill-[#F04E2E] text-[#F04E2E]' : ''} />
                         </button>
                         <button
                           type="button"
@@ -204,13 +195,13 @@ export default function ProfilePage() {
         <ImageModal image={selectedImage} onClose={() => setSelectedImage(null)} />
       )}
       {isEditModalOpen && (
-        <EditProfileModal 
-          profile={profile} 
+        <EditProfileModal
+          profile={profile}
           onSave={(newProfile) => {
             setProfile(newProfile);
             setIsEditModalOpen(false);
           }}
-          onClose={() => setIsEditModalOpen(false)} 
+          onClose={() => setIsEditModalOpen(false)}
         />
       )}
     </div>
