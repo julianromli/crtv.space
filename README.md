@@ -1,20 +1,56 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# crtv.space
 
-# Run and deploy your AI Studio app
+crtv.space is a Next.js app for visual inspiration and creative workflow management.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/becc3c13-cc0e-4095-b9b0-d46ea2b9f440
+- Inspiration gallery with image modal preview
+- Profile page with editable user details
+- Workspace page with canvas layout and side panels
+- Built with Next.js App Router, React, TypeScript, and Tailwind CSS
 
-## Run Locally
+## Requirements
 
-**Prerequisites:**  Node.js
+- Node.js 20+
+- npm
 
+## Getting Started
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+```bash
+npm install
+```
+
+2. Create your local env file from the example:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Set values in `.env.local`:
+
+- `GEMINI_API_KEY` (required for Gemini API calls)
+- `APP_URL` (app base URL for local or deployed runtime)
+
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+5. Open `http://localhost:3000` in your browser.
+
+## Available Scripts
+
+- `npm run dev` - Start local dev server
+- `npm run build` - Create production build
+- `npm run start` - Run production server
+- `npm run lint` - Run ESLint
+- `npm run clean` - Run Next.js cleanup
+
+## Project Routes
+
+- `/` - Home gallery
+- `/profile` - Profile view
+- `/workspace` - Canvas workspace

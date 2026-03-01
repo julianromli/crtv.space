@@ -1,8 +1,14 @@
-import { X, Maximize2, Edit2, Shuffle, Image as ImageIcon, Copy, PlayCircle, Maximize, Scissors, Link as LinkIcon, Check, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Edit2, Shuffle, Image as ImageIcon, Copy, PlayCircle, Maximize, Scissors, Link as LinkIcon, Check, ZoomIn, ZoomOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
-export default function ImageModal({ image, onClose }: { image: any; onClose: () => void }) {
+type ModalImage = {
+  src: string;
+  alt: string;
+};
+
+export default function ImageModal({ image, onClose }: { image: ModalImage; onClose: () => void }) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -83,17 +89,22 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
+            role="application"
+            tabIndex={-1}
           >
-            <img 
+            <Image
               src={image.src} 
               alt={image.alt} 
+              width={1200}
+              height={1200}
               className="w-full h-full object-contain pointer-events-none transition-transform duration-75"
               style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}
             />
             
             {/* Zoom Controls Overlay */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-              <button 
+              <button
+                type="button"
                 onClick={() => {
                   const newScale = Math.max(1, scale - 0.5);
                   setScale(newScale);
@@ -106,7 +117,8 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
               <span className="text-white text-xs font-mono w-12 text-center">
                 {Math.round(scale * 100)}%
               </span>
-              <button 
+              <button
+                type="button"
                 onClick={() => setScale(Math.min(5, scale + 0.5))}
                 className="text-white hover:text-[#F04E2E] transition-colors p-1"
               >
@@ -116,7 +128,8 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
 
             {/* Copy Link Button */}
             <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button 
+              <button
+                type="button"
                 onClick={handleCopyLink}
                 className="bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-full backdrop-blur-sm transition-colors flex items-center gap-2"
               >
@@ -135,7 +148,7 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
                 <p className="text-[#E5E5E5] text-[15px] leading-relaxed font-light">
                   A minimalist, editorial photograph with a soft, neutral palette and abundant negative space. A woman reclines casually on a textured off-white boucle sofa, wearing loose...
                 </p>
-                <button className="text-[#A3A3A3] text-sm mt-1 hover:text-[#E5E5E5] font-semibold">More</button>
+                <button type="button" className="text-[#A3A3A3] text-sm mt-1 hover:text-[#E5E5E5] font-semibold">More</button>
               </div>
               <div className="space-y-4 mb-8">
                 <DetailRow label="Tool" value="Composer" />
@@ -155,6 +168,7 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/50 rounded-full p-2 z-50 md:hidden"
           >
@@ -162,6 +176,7 @@ export default function ImageModal({ image, onClose }: { image: any; onClose: ()
           </button>
         </motion.div>
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 md:top-8 md:right-8 text-white/80 hover:text-white bg-black/50 md:bg-transparent rounded-full p-2 z-50 hidden md:block"
         >
@@ -183,7 +198,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function ActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <button className="w-full flex items-center gap-3 p-3 bg-[#333333]/50 border border-transparent hover:bg-[#333333] rounded-xl transition-colors text-left group">
+    <button type="button" className="w-full flex items-center gap-3 p-3 bg-[#333333]/50 border border-transparent hover:bg-[#333333] rounded-xl transition-colors text-left group">
       <span className="text-[#D94F2B] group-hover:scale-110 transition-transform">{icon}</span>
       <span className="text-[#E5E5E5] text-sm font-semibold">{label}</span>
     </button>

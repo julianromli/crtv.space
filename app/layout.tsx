@@ -10,8 +10,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: 'CRTV',
-  description: 'CRTV Space',
+  title: 'crtv.space',
+  description: 'crtv.space',
 };
 
 export default function RootLayout({
