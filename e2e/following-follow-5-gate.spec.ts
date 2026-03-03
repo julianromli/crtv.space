@@ -1,19 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { setAuthedSessionCookie, setOnboardingComplete } from "./helpers/session";
 
 test.describe("/following follow-5 completion gate", () => {
   test.setTimeout(120_000);
 
-  test.beforeEach(async ({ request }) => {
-    const patchResponse = await request.patch("/api/onboarding", {
-      data: { usernameCompleted: true },
-    });
-    expect(patchResponse.ok()).toBeTruthy();
-
-    const onboardingResponse = await request.get("/api/onboarding");
-    expect(onboardingResponse.ok()).toBeTruthy();
-    await expect(onboardingResponse.json()).resolves.toMatchObject({
-      onboarding: { usernameCompleted: true },
-    });
+  test.beforeEach(async ({ context }) => {
+    await setAuthedSessionCookie(context);
+    await setOnboardingComplete(context);
   });
 
   test("locks the feed when count is below threshold", async ({ page }) => {

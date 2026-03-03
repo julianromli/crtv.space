@@ -78,7 +78,7 @@ Goal: enforce mandatory username while keeping onboarding lightweight.
 ### Verification
 
 - [x] Integration tests for onboarding redirect matrix.
-- [ ] E2E flow: sign-up -> onboarding -> complete -> `/explore`.
+- [x] E2E flow: sign-up -> onboarding -> complete -> `/explore`.
 
 ---
 
@@ -108,7 +108,7 @@ Goal: ship core feed navigation with minimum-follow gate in `/following`.
 
 ### Verification
 
-- [ ] E2E test for follow-5 completion gate.
+- [x] E2E test for follow-5 completion gate.
 - [x] API contract tests for count/recommendations/follow actions.
 
 ---
@@ -159,7 +159,7 @@ Goal: finalize creator core routes and unified credits surface.
 ### Verification
 
 - [x] Integration tests for wallet consistency across routes.
-- [ ] E2E for `/workspace` -> `/canvas` canonical redirect.
+- [x] E2E for `/workspace` -> `/canvas` canonical redirect.
 
 ---
 
@@ -169,37 +169,37 @@ Goal: production confidence across routing, onboarding, and conversion funnel.
 
 ### Tickets
 
-- [ ] Add route-access matrix E2E tests (logged-out, logged-in, onboarding-incomplete).
-- [ ] Add canonical URL assertions for `/@username`.
-- [ ] Add event tracking:
-  - [ ] `landing_authed_redirect_to_explore`
-  - [ ] `following_follow5_completed`
-  - [ ] `onboarding_step_skipped`
-  - [ ] `canvas_opened`
-  - [ ] `canvas_generation_started`
-  - [ ] `canvas_generation_succeeded`
-- [ ] Add event payload schema validation in analytics pipeline.
+- [x] Add route-access matrix E2E tests (logged-out, logged-in, onboarding-incomplete).
+- [x] Add canonical URL assertions for `/@username`.
+- [x] Add event tracking:
+  - [x] `landing_authed_redirect_to_explore`
+  - [x] `following_follow5_completed`
+  - [x] `onboarding_step_skipped`
+  - [x] `canvas_opened`
+  - [x] `canvas_generation_started`
+  - [x] `canvas_generation_succeeded`
+- [x] Add event payload schema validation in analytics pipeline.
 
 ### Acceptance
 
-- [ ] All matrix tests pass in CI.
-- [ ] Funnel events visible in staging analytics.
+- [x] All matrix tests pass in CI.
+- [x] Funnel events visible in staging analytics.
 
 ### Verification
 
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run build`
-- [ ] E2E suite green
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm run build`
+- [x] E2E suite green
 
 ---
 
 ## Global Definition of Done
 
-- [ ] Route taxonomy matches final IA decisions.
-- [ ] Middleware guard order is deterministic and loop-free.
-- [ ] Handle normalization and reserved list enforced server-side.
-- [ ] Onboarding behavior matches "username required, soft steps skippable".
-- [ ] `/` public landing + auth redirect behavior implemented.
-- [ ] `/profile` and `/workspace` aliases safely redirect to canonical routes.
-- [ ] CI is green on lint, typecheck, build, and E2E.
+- [x] Route taxonomy matches final IA decisions.
+- [x] Middleware guard order is deterministic and loop-free.
+- [x] Handle normalization and reserved list enforced server-side.
+- [x] Onboarding behavior matches "username required, soft steps skippable".
+- [x] `/` public landing + auth redirect behavior implemented.
+- [x] `/profile` and `/workspace` aliases safely redirect to canonical routes.
+- [x] CI is green on lint, typecheck, build, and E2E.

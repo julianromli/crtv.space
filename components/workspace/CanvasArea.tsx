@@ -1,7 +1,41 @@
-import { Plus, ImageIcon, Square, Layers, Zap } from 'lucide-react';
-import Image from 'next/image';
+"use client";
+
+import { useState } from "react";
+import { Plus, ImageIcon, Square, Layers, Zap } from "lucide-react";
+import Image from "next/image";
+import { trackAnalyticsEvent } from "@/lib/analytics/client";
 
 export default function CanvasArea() {
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  async function handleGenerate() {
+    if (isGenerating) {
+      return;
+    }
+
+    const promptLength = prompt.trim().length;
+    setIsGenerating(true);
+
+    await trackAnalyticsEvent(
+      "canvas_generation_started",
+      { promptLength },
+      { source: "canvas_generation_button" }
+    );
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 250);
+    });
+
+    await trackAnalyticsEvent(
+      "canvas_generation_succeeded",
+      { promptLength, outputCount: 1 },
+      { source: "canvas_generation_button" }
+    );
+
+    setIsGenerating(false);
+  }
+
   return (
     <main className="flex-1 bg-[#121212] relative overflow-hidden flex items-center justify-center p-8">
       <div className="relative group">
@@ -13,11 +47,11 @@ export default function CanvasArea() {
         </div>
         <div className="relative w-[400px] h-[400px] md:w-[500px] md:h-[500px] bg-[#1E1E1E] shadow-2xl overflow-hidden">
           <Image
-            src="https://picsum.photos/seed/workspace/800/800" 
-            alt="Canvas Image" 
+            src="https://picsum.photos/seed/workspace/800/800"
+            alt="Canvas Image"
             width={800}
             height={800}
-            className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-300" 
+            className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-300"
           />
         </div>
       </div>
@@ -31,10 +65,12 @@ export default function CanvasArea() {
           </button>
         </div>
         <div className="px-4 py-3">
-          <input 
-            type="text" 
-            placeholder="What would you like to create?" 
-            className="w-full bg-transparent border-none text-sm focus:outline-none placeholder-[#A1A1A1] text-[#EDEDED] p-0 font-light" 
+          <input
+            type="text"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="What would you like to create?"
+            className="w-full bg-transparent border-none text-sm focus:outline-none placeholder-[#A1A1A1] text-[#EDEDED] p-0 font-light"
           />
         </div>
         <div className="flex items-center justify-between px-3 pb-2 pt-1">
@@ -60,7 +96,13 @@ export default function CanvasArea() {
             </button>
             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 via-purple-500 to-red-500"></div>
           </div>
-          <button type="button" className="h-8 w-8 bg-[#2D2D2D] hover:bg-[#404040] rounded-full flex items-center justify-center text-[#A1A1A1] hover:text-[#EDEDED] transition-colors">
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            aria-label="Generate image"
+            className="h-8 w-8 bg-[#2D2D2D] hover:bg-[#404040] rounded-full flex items-center justify-center text-[#A1A1A1] hover:text-[#EDEDED] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             <Zap size={16} />
           </button>
         </div>

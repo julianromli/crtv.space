@@ -1,3 +1,4 @@
+import TrackEventOnMount from '@/components/analytics/TrackEventOnMount';
 import CanvasArea from '@/components/workspace/CanvasArea';
 import WorkspaceLeftSidebar from '@/components/workspace/LeftSidebar';
 import WorkspaceRightSidebar from '@/components/workspace/RightSidebar';
@@ -19,6 +20,11 @@ export default async function CanvasPage() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#121212] overflow-hidden">
+      <TrackEventOnMount
+        eventName="canvas_opened"
+        payload={{ surface: 'canvas_page' }}
+        source="canvas_page"
+      />
       <WorkspaceTopBar />
       <div className="flex flex-1 overflow-hidden relative">
         <WorkspaceLeftSidebar />

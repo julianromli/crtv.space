@@ -1,3 +1,5 @@
+import TrackEventOnMount from "@/components/analytics/TrackEventOnMount";
+
 const FOLLOWING_UNLOCK_THRESHOLD = 5;
 
 type FollowSuggestion = {
@@ -87,6 +89,11 @@ export default async function FollowingPage({ searchParams }: FollowingPageProps
 
   return (
     <div className="min-h-screen w-full bg-[#121212] px-6 py-8 text-zinc-100 md:px-10">
+      <TrackEventOnMount
+        eventName="following_follow5_completed"
+        payload={{ followCount: followingCount, threshold: FOLLOWING_UNLOCK_THRESHOLD }}
+        source="following_page"
+      />
       <div className="mx-auto w-full max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
         <p className="text-sm text-zinc-300">Following feed unlocked.</p>
       </div>

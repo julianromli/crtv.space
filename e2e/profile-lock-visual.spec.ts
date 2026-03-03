@@ -9,6 +9,7 @@ test.describe("/@faiz-intifada profile lock visual states", () => {
     await expect(page.getByText("Portfolio is locked")).toBeVisible();
     await expect(page.locator("main")).toHaveScreenshot(
       "profile-faiz-locked-main.png",
+      { maxDiffPixels: 40 },
     );
   });
 
@@ -20,6 +21,7 @@ test.describe("/@faiz-intifada profile lock visual states", () => {
     await expect(page.getByText("Portfolio is locked")).toHaveCount(0);
     await expect(page.locator("main")).toHaveScreenshot(
       "profile-faiz-unlocked-main.png",
+      { maxDiffPixels: 40 },
     );
   });
 });

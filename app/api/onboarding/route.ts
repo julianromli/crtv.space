@@ -7,6 +7,8 @@ import {
 } from '@/lib/data/onboarding';
 import { getCurrentProfileUsername } from '@/lib/data/profile';
 import { normalizeHandle, validateHandle } from '@/lib/routing/handle';
+import { createAnalyticsEvent } from '@/lib/analytics/events';
+import { ingestAnalyticsEvent } from '@/lib/analytics/pipeline';
 
 export async function GET() {
   const userId = getCurrentOnboardingUserId();
@@ -40,5 +42,32 @@ export async function PATCH(request: Request) {
 
   const userId = getCurrentOnboardingUserId();
   const onboarding = patchOnboardingState(payload, userId);
-  return NextResponse.json({ onboarding });
+
+  if (payload.optionalStepAction?.action === 'skip') {
+    ingestAnalyticsEvent(
+      createAnalyticsEvent({
+        event: 'onboarding_step_skipped',
+        context: {
+          path: '/onboarding',
+          source: 'onboarding_api_patch',
+          userId,
+        },
+        payload: {
+          step: payload.optionalStepAction.step,
+        },
+      })
+    );
+  }
+
+  const response = NextResponse.json({ onboarding });
+
+  if (typeof payload.usernameCompleted === "boolean") {
+    response.cookies.set("crtv_onboarding_completed", payload.usernameCompleted ? "1" : "0", {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+  }
+
+  return response;
 }

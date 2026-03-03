@@ -17,7 +17,13 @@ export function middleware(request: NextRequest) {
     const authCookie = request.cookies.get("crtv_auth")?.value
 
     if (authCookie && authCookie.trim() !== "") {
-      return NextResponse.redirect(new URL(ROUTES.EXPLORE, request.url))
+      const response = NextResponse.redirect(new URL(ROUTES.EXPLORE, request.url))
+      response.cookies.set("crtv_landing_redirected_to_explore", "1", {
+        path: "/",
+        maxAge: 60,
+        sameSite: "lax",
+      })
+      return response
     }
   }
 
@@ -36,9 +42,12 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
+    const onboardingCookie = request.cookies.get("crtv_onboarding_completed")?.value
     const onboardingState = getOnboardingState()
+    const isOnboardingComplete =
+      onboardingCookie === "1" || (onboardingCookie !== "0" && onboardingState.usernameCompleted)
 
-    if (!onboardingState.usernameCompleted) {
+    if (!isOnboardingComplete) {
       const nextCandidate = `${request.nextUrl.pathname}${request.nextUrl.search}`
       const safeNextPath = sanitizeNextPath(nextCandidate)
       const redirectUrl = new URL(ROUTES.HOME, request.url)
