@@ -17,13 +17,13 @@ test("validateAnalyticsEvent accepts landing redirect event shape", () => {
 
   const result = validateAnalyticsEvent(event)
 
-  assert.equal(result.ok, true)
-  if (!result.ok) {
+  if (result.ok) {
+    assert.equal(result.event.event, "landing_authed_redirect_to_explore")
+    assert.equal(result.event.context.path, "/explore")
     return
   }
 
-  assert.equal(result.event.event, "landing_authed_redirect_to_explore")
-  assert.equal(result.event.context.path, "/explore")
+  assert.fail(`Expected valid analytics event, got error: ${result.error}`)
 })
 
 test("validateAnalyticsEvent rejects unknown event names", () => {

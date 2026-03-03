@@ -42,10 +42,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    const onboardingCookie = request.cookies.get("crtv_onboarding_completed")?.value
     const onboardingState = getOnboardingState()
-    const isOnboardingComplete =
-      onboardingCookie === "1" || (onboardingCookie !== "0" && onboardingState.usernameCompleted)
+    const isOnboardingComplete = onboardingState.usernameCompleted
 
     if (!isOnboardingComplete) {
       const nextCandidate = `${request.nextUrl.pathname}${request.nextUrl.search}`

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { unfollowTarget } from '@/lib/data/follows';
 
 export async function DELETE(
   _request: Request,
@@ -7,13 +8,10 @@ export async function DELETE(
   const { targetId: rawTargetId } = await params;
   const targetId = typeof rawTargetId === 'string' ? rawTargetId.trim() : '';
 
-  if (!targetId) {
+  const result = unfollowTarget(targetId);
+  if (!result) {
     return NextResponse.json({ error: 'targetId is required' }, { status: 400 });
   }
 
-  return NextResponse.json({
-    followed: false,
-    targetId,
-    count: 0,
-  });
+  return NextResponse.json(result);
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { followTarget } from '@/lib/data/follows';
 
 type FollowRequestBody = {
   targetId?: unknown;
@@ -15,13 +16,10 @@ export async function POST(request: Request) {
 
   const targetId = typeof body.targetId === 'string' ? body.targetId.trim() : '';
 
-  if (!targetId) {
+  const result = followTarget(targetId);
+  if (!result) {
     return NextResponse.json({ error: 'targetId is required' }, { status: 400 });
   }
 
-  return NextResponse.json({
-    followed: true,
-    targetId,
-    count: 1,
-  });
+  return NextResponse.json(result);
 }

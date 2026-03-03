@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test"
 import { setAuthedSessionCookie, setOnboardingComplete, setOnboardingIncomplete } from "./helpers/session"
+import { AUTH_ONLY_PATHS } from "@/lib/routing/routes"
+
+const protectedRoutes = [...AUTH_ONLY_PATHS]
 
 test.describe("route access matrix", () => {
   test("logged-out user can access public routes without middleware redirect", async ({ page }) => {
@@ -13,8 +16,6 @@ test.describe("route access matrix", () => {
   })
 
   test("logged-out user is redirected to / with next on protected routes", async ({ page }) => {
-    const protectedRoutes = ["/explore", "/following", "/search", "/analytics", "/canvas", "/billing"]
-
     for (const route of protectedRoutes) {
       await page.goto(`${route}?probe=1`, { waitUntil: "domcontentloaded" })
       const currentUrl = new URL(page.url())
@@ -29,8 +30,6 @@ test.describe("route access matrix", () => {
   }) => {
     await setAuthedSessionCookie(context)
     await setOnboardingIncomplete(context)
-
-    const protectedRoutes = ["/explore", "/following", "/search", "/analytics", "/canvas", "/billing"]
 
     for (const route of protectedRoutes) {
       await page.goto(`${route}?probe=1`, { waitUntil: "domcontentloaded" })
@@ -47,8 +46,6 @@ test.describe("route access matrix", () => {
   test("logged-in onboarding-complete user can access protected routes", async ({ page, context }) => {
     await setAuthedSessionCookie(context)
     await setOnboardingComplete(context)
-
-    const protectedRoutes = ["/explore", "/following", "/search", "/analytics", "/canvas", "/billing"]
 
     for (const route of protectedRoutes) {
       await page.goto(route, { waitUntil: "domcontentloaded" })

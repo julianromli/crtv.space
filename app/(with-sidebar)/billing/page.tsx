@@ -1,14 +1,5 @@
+import { formatUsdCents } from '@/lib/data/wallet-formatting';
 import { getWalletSummary } from '@/lib/data/wallet';
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 2,
-});
-
-function formatCents(value: number) {
-  return currencyFormatter.format(value / 100);
-}
 
 function formatPayoutDate(value: string) {
   return new Intl.DateTimeFormat('en-US', {
@@ -35,15 +26,15 @@ export default async function BillingPage() {
         <section className="grid gap-4 sm:grid-cols-3">
           <article className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_0_0_1px_rgba(24,24,27,0.4)]">
             <p className="text-xs uppercase tracking-wide text-zinc-500">Available</p>
-            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatCents(wallet.availableBalanceCents)}</p>
+            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatUsdCents(wallet.availableBalanceCents)}</p>
           </article>
           <article className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_0_0_1px_rgba(24,24,27,0.4)]">
             <p className="text-xs uppercase tracking-wide text-zinc-500">Pending</p>
-            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatCents(wallet.pendingBalanceCents)}</p>
+            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatUsdCents(wallet.pendingBalanceCents)}</p>
           </article>
           <article className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_0_0_1px_rgba(24,24,27,0.4)]">
             <p className="text-xs uppercase tracking-wide text-zinc-500">Total Earned</p>
-            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatCents(wallet.totalEarnedCents)}</p>
+            <p className="mt-3 text-3xl font-semibold text-zinc-100">{formatUsdCents(wallet.totalEarnedCents)}</p>
           </article>
         </section>
 

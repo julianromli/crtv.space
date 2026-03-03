@@ -5,6 +5,7 @@ import { GET as getFollowingCount } from "@/app/api/following/count/route"
 import { GET as getRecommendations } from "@/app/api/following/recommendations/route"
 import { DELETE } from "@/app/api/follows/[targetId]/route"
 import { POST } from "@/app/api/follows/route"
+import { resetFollowStateForTests } from "@/lib/data/follows"
 
 type FollowingCountResponse = {
   count: number
@@ -27,6 +28,8 @@ type FollowMutationResponse = {
 }
 
 test("GET /api/following/count returns count contract", async () => {
+  resetFollowStateForTests()
+
   const response = await getFollowingCount()
   const body = (await response.json()) as FollowingCountResponse
 
@@ -61,6 +64,8 @@ test("GET /api/following/recommendations falls back to default limit on invalid 
 })
 
 test("POST /api/follows returns follow contract", async () => {
+  resetFollowStateForTests()
+
   const request = new Request("http://localhost/api/follows", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -79,6 +84,15 @@ test("POST /api/follows returns follow contract", async () => {
 })
 
 test("DELETE /api/follows/:targetId returns unfollow contract", async () => {
+  resetFollowStateForTests()
+
+  const followRequest = new Request("http://localhost/api/follows", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ targetId: "u_123" }),
+  })
+  await POST(followRequest)
+
   const request = new Request("http://localhost/api/follows/u_123", {
     method: "DELETE",
   })
@@ -94,4 +108,39 @@ test("DELETE /api/follows/:targetId returns unfollow contract", async () => {
   assert.equal(body.targetId, "u_123")
   assert.equal(typeof body.count, "number")
   assert.equal(body.count, 0)
+})
+
+test("POST and DELETE update GET /api/following/count", async () => {
+  resetFollowStateForTests()
+
+  const initialResponse = await getFollowingCount()
+  const initialBody = (await initialResponse.json()) as FollowingCountResponse
+  assert.equal(initialBody.count, 0)
+
+  await POST(
+    new Request("http://localhost/api/follows", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ targetId: "u_001" }),
+    })
+  )
+  await POST(
+    new Request("http://localhost/api/follows", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ targetId: "u_002" }),
+    })
+  )
+
+  const afterFollowResponse = await getFollowingCount()
+  const afterFollowBody = (await afterFollowResponse.json()) as FollowingCountResponse
+  assert.equal(afterFollowBody.count, 2)
+
+  await DELETE(new Request("http://localhost/api/follows/u_001", { method: "DELETE" }), {
+    params: Promise.resolve({ targetId: "u_001" }),
+  })
+
+  const afterUnfollowResponse = await getFollowingCount()
+  const afterUnfollowBody = (await afterUnfollowResponse.json()) as FollowingCountResponse
+  assert.equal(afterUnfollowBody.count, 1)
 })
