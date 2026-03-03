@@ -1,0 +1,7 @@
+HTTP/1.1 307 Temporary Redirect
+location: /onboarding?next=%2Fexplore%3Ftab%3Dlatest
+Date: Sun, 01 Mar 2026 08:01:53 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+

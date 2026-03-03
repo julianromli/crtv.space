@@ -1,24 +1,43 @@
+import { notFound, redirect } from 'next/navigation';
 import ProfileClientShell from '@/components/profile/ProfileClientShell';
-import { getPortfolioByUsername, getProfileByUsername, normalizeUsername } from '@/lib/data/profile';
-import { notFound } from 'next/navigation';
+import {
+  getPortfolioByUsername,
+  getProfileByUsername,
+  normalizeUsername,
+  resolveViewerModeFromSearchParam,
+} from '@/lib/data/profile';
 
 export default async function HandleProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ handle: string }>;
+  searchParams?: Promise<{ viewerMode?: string | string[] }>;
 }) {
   const { handle } = await params;
-  if (!handle.startsWith('@')) {
-    notFound();
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const viewerMode = resolveViewerModeFromSearchParam(resolvedSearchParams?.viewerMode);
+  let decodedHandle = handle;
+  try {
+    decodedHandle = decodeURIComponent(handle);
+  } catch {
+    decodedHandle = handle;
   }
 
-  const username = normalizeUsername(handle);
+  const username = normalizeUsername(decodedHandle);
   if (!username) {
     notFound();
   }
 
+  const canonicalHandle = `@${username}`;
+  const canonicalPath = `/${canonicalHandle}`;
+  if (decodedHandle !== canonicalHandle) {
+    const canonicalUrl = viewerMode === 'logged_in' ? `${canonicalPath}?viewerMode=logged_in` : canonicalPath;
+    redirect(canonicalUrl);
+  }
+
   const [profile, portfolioItems] = await Promise.all([
-    getProfileByUsername(username),
+    getProfileByUsername(username, viewerMode),
     getPortfolioByUsername(username),
   ]);
 
