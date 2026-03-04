@@ -1,3 +1,4 @@
+import { clerkMiddleware } from "@clerk/nextjs/server"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { AUTH_ONLY_PATHS, ROUTES } from "@/lib/routing/routes"
@@ -7,7 +8,28 @@ function isOnboardingCompleteForRequest(request: NextRequest): boolean {
   return request.cookies.get("crtv_onboarding_completed")?.value === "1"
 }
 
-export function middleware(request: NextRequest) {
+function hasLegacyAuthCookie(request: NextRequest): boolean {
+  const legacyAuthCookie = request.cookies.get("crtv_auth")?.value
+  return Boolean(legacyAuthCookie && legacyAuthCookie.trim() !== "")
+}
+
+function isClerkConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY)
+}
+
+const clerkReady = isClerkConfigured()
+const middlewareOptions = clerkReady
+  ? undefined
+  : {
+      publishableKey: "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k",
+      secretKey: "sk_test_dummy_secret_key",
+      encryptionKey: "12345678901234567890123456789012",
+    }
+
+export default clerkMiddleware(async (auth, request: NextRequest) => {
+  const userId = clerkReady ? (await auth()).userId : null
+  const isAuthenticated = clerkReady ? Boolean(userId) : hasLegacyAuthCookie(request)
+
   if (request.nextUrl.pathname === "/workspace") {
     return NextResponse.redirect(new URL("/canvas", request.url))
   }
@@ -17,9 +39,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname === ROUTES.HOME) {
-    const authCookie = request.cookies.get("crtv_auth")?.value
-
-    if (authCookie && authCookie.trim() !== "") {
+    if (isAuthenticated) {
       const response = NextResponse.redirect(new URL(ROUTES.EXPLORE, request.url))
       response.cookies.set("crtv_landing_redirected_to_explore", "1", {
         path: "/",
@@ -31,15 +51,13 @@ export function middleware(request: NextRequest) {
   }
 
   if (AUTH_ONLY_PATHS.includes(request.nextUrl.pathname as (typeof AUTH_ONLY_PATHS)[number])) {
-    const authCookie = request.cookies.get("crtv_auth")?.value
-
-    if (!authCookie || authCookie.trim() === "") {
+    if (!isAuthenticated) {
       const nextCandidate = `${request.nextUrl.pathname}${request.nextUrl.search}`
       const safeNextPath = sanitizeNextPath(nextCandidate)
-      const redirectUrl = new URL(ROUTES.HOME, request.url)
+      const redirectUrl = new URL("/sign-in", request.url)
 
       if (safeNextPath) {
-        redirectUrl.searchParams.set("next", safeNextPath)
+        redirectUrl.searchParams.set("redirect_url", safeNextPath)
       }
 
       return NextResponse.redirect(redirectUrl)
@@ -63,10 +81,11 @@ export function middleware(request: NextRequest) {
   }
 
   return NextResponse.next()
-}
+}, middlewareOptions)
 
 export const config = {
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\..*).*)",
+    "/(api|trpc)(.*)",
   ],
 }

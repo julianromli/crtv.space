@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
+import { auth } from "@clerk/nextjs/server";
 import {
-  getCurrentOnboardingUserId,
   getOnboardingState,
   isValidOnboardingPatch,
   patchOnboardingState,
@@ -10,8 +10,22 @@ import { normalizeHandle, validateHandle } from '@/lib/routing/handle';
 import { createAnalyticsEvent } from '@/lib/analytics/events';
 import { ingestAnalyticsEvent } from '@/lib/analytics/pipeline';
 
+async function getOnboardingUserId() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return null;
+  }
+
+  return userId;
+}
+
 export async function GET() {
-  const userId = getCurrentOnboardingUserId();
+  const userId = await getOnboardingUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const onboarding = getOnboardingState(userId);
   return NextResponse.json({ onboarding });
 }
@@ -40,7 +54,11 @@ export async function PATCH(request: Request) {
     }
   }
 
-  const userId = getCurrentOnboardingUserId();
+  const userId = await getOnboardingUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const onboarding = patchOnboardingState(payload, userId);
 
   if (payload.optionalStepAction?.action === 'skip') {

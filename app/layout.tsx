@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from "@clerk/nextjs";
 import { Manrope } from 'next/font/google';
 import './globals.css';
 
@@ -19,10 +20,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${manrope.variable} dark`}>
-      <body className="font-sans tracking-tight bg-[#121212] text-[#F3F4F6] antialiased overflow-hidden" suppressHydrationWarning>
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className={`${manrope.variable} dark`}>
+        <body className="font-sans tracking-tight bg-[#121212] text-[#F3F4F6] antialiased overflow-hidden" suppressHydrationWarning>
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

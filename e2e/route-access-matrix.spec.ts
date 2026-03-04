@@ -14,12 +14,12 @@ test.describe("route access matrix", () => {
     }
   })
 
-  test("logged-out user is redirected to / with next on protected routes", async ({ page }) => {
+  test("logged-out user is redirected to /sign-in with redirect_url on protected routes", async ({ page }) => {
     for (const route of protectedRoutes) {
       await page.goto(`${route}?probe=1`, { waitUntil: "domcontentloaded" })
       const currentUrl = new URL(page.url())
-      expect(currentUrl.pathname).toBe("/")
-      expect(currentUrl.searchParams.get("next")).toBe(`${route}?probe=1`)
+      expect(currentUrl.pathname).toBe("/sign-in")
+      expect(currentUrl.searchParams.get("redirect_url")).toBe(`${route}?probe=1`)
     }
   })
 
