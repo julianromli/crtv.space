@@ -5,7 +5,7 @@ import { GET as getFollowingCount } from "@/app/api/following/count/route"
 import { GET as getRecommendations } from "@/app/api/following/recommendations/route"
 import { DELETE } from "@/app/api/follows/[targetId]/route"
 import { POST } from "@/app/api/follows/route"
-import { resetFollowStateForTests } from "@/lib/data/follows"
+import { FOLLOWING_COOKIE_NAME } from "@/lib/data/follows"
 
 type FollowingCountResponse = {
   count: number
@@ -27,10 +27,24 @@ type FollowMutationResponse = {
   count: number
 }
 
-test("GET /api/following/count returns count contract", async () => {
-  resetFollowStateForTests()
+function extractCookiePairFromSetCookieHeader(setCookieHeader: string | null): string | null {
+  if (!setCookieHeader) {
+    return null
+  }
 
-  const response = await getFollowingCount()
+  return setCookieHeader.split(";")[0] ?? null
+}
+
+function getCookieHeader(cookiePair?: string | null): HeadersInit | undefined {
+  if (!cookiePair) {
+    return undefined
+  }
+
+  return { cookie: cookiePair }
+}
+
+test("GET /api/following/count returns count contract", async () => {
+  const response = await getFollowingCount(new Request("http://localhost/api/following/count"))
   const body = (await response.json()) as FollowingCountResponse
 
   assert.equal(response.status, 200)
@@ -64,8 +78,6 @@ test("GET /api/following/recommendations falls back to default limit on invalid 
 })
 
 test("POST /api/follows returns follow contract", async () => {
-  resetFollowStateForTests()
-
   const request = new Request("http://localhost/api/follows", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -81,20 +93,23 @@ test("POST /api/follows returns follow contract", async () => {
   assert.equal(body.targetId, "u_123")
   assert.equal(typeof body.count, "number")
   assert.equal(body.count, 1)
+
+  const setCookieHeader = response.headers.get("set-cookie")
+  assert.ok(setCookieHeader?.includes(FOLLOWING_COOKIE_NAME))
 })
 
 test("DELETE /api/follows/:targetId returns unfollow contract", async () => {
-  resetFollowStateForTests()
-
   const followRequest = new Request("http://localhost/api/follows", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ targetId: "u_123" }),
   })
-  await POST(followRequest)
+  const followResponse = await POST(followRequest)
+  const followCookiePair = extractCookiePairFromSetCookieHeader(followResponse.headers.get("set-cookie"))
 
   const request = new Request("http://localhost/api/follows/u_123", {
     method: "DELETE",
+    headers: getCookieHeader(followCookiePair),
   })
   const response = await DELETE(request, {
     params: Promise.resolve({ targetId: "u_123" }),
@@ -111,36 +126,55 @@ test("DELETE /api/follows/:targetId returns unfollow contract", async () => {
 })
 
 test("POST and DELETE update GET /api/following/count", async () => {
-  resetFollowStateForTests()
-
-  const initialResponse = await getFollowingCount()
+  const initialResponse = await getFollowingCount(new Request("http://localhost/api/following/count"))
   const initialBody = (await initialResponse.json()) as FollowingCountResponse
   assert.equal(initialBody.count, 0)
 
-  await POST(
+  const firstFollowResponse = await POST(
     new Request("http://localhost/api/follows", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ targetId: "u_001" }),
     })
   )
-  await POST(
+  const firstCookiePair = extractCookiePairFromSetCookieHeader(firstFollowResponse.headers.get("set-cookie"))
+
+  const secondFollowResponse = await POST(
     new Request("http://localhost/api/follows", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...getCookieHeader(firstCookiePair),
+      },
       body: JSON.stringify({ targetId: "u_002" }),
     })
   )
+  const secondCookiePair = extractCookiePairFromSetCookieHeader(secondFollowResponse.headers.get("set-cookie"))
 
-  const afterFollowResponse = await getFollowingCount()
+  const afterFollowResponse = await getFollowingCount(
+    new Request("http://localhost/api/following/count", {
+      headers: getCookieHeader(secondCookiePair),
+    })
+  )
   const afterFollowBody = (await afterFollowResponse.json()) as FollowingCountResponse
   assert.equal(afterFollowBody.count, 2)
 
-  await DELETE(new Request("http://localhost/api/follows/u_001", { method: "DELETE" }), {
-    params: Promise.resolve({ targetId: "u_001" }),
-  })
+  const unfollowResponse = await DELETE(
+    new Request("http://localhost/api/follows/u_001", {
+      method: "DELETE",
+      headers: getCookieHeader(secondCookiePair),
+    }),
+    {
+      params: Promise.resolve({ targetId: "u_001" }),
+    }
+  )
+  const thirdCookiePair = extractCookiePairFromSetCookieHeader(unfollowResponse.headers.get("set-cookie"))
 
-  const afterUnfollowResponse = await getFollowingCount()
+  const afterUnfollowResponse = await getFollowingCount(
+    new Request("http://localhost/api/following/count", {
+      headers: getCookieHeader(thirdCookiePair),
+    })
+  )
   const afterUnfollowBody = (await afterUnfollowResponse.json()) as FollowingCountResponse
   assert.equal(afterUnfollowBody.count, 1)
 })

@@ -3,7 +3,6 @@ import test from "node:test"
 
 import { NextRequest } from "next/server"
 
-import { getOnboardingState, patchOnboardingState } from "@/lib/data/onboarding"
 import { middleware } from "@/middleware"
 
 function runMiddleware(url: string, cookieHeader?: string): Response {
@@ -52,11 +51,8 @@ test("canonical redirect smoke: /dashboard -> /analytics", () => {
   assert.equal(location ? new URL(location).pathname : null, "/analytics")
 })
 
-test("middleware redirects protected routes to onboarding with sanitized next when onboarding is incomplete", () => {
-  const onboardingState = getOnboardingState()
-  assert.equal(onboardingState.usernameCompleted, false)
-
-  const response = runMiddleware("http://localhost/explore?tab=latest", "crtv_auth=session-token")
+test("middleware redirects protected routes to onboarding with sanitized next when onboarding cookie is incomplete", () => {
+  const response = runMiddleware("http://localhost/explore?tab=latest", "crtv_auth=session-token; crtv_onboarding_completed=0")
   const location = response.headers.get("location")
 
   assert.equal(response.status, 307)
@@ -79,18 +75,15 @@ test("middleware blocks logged-out /analytics access and redirects to / with nex
   assert.equal(redirectUrl.searchParams.get("next"), "/analytics?range=7d")
 })
 
-test("middleware allows authenticated /analytics access when onboarding is complete", () => {
-  patchOnboardingState({ usernameCompleted: true })
+test("middleware allows authenticated /analytics access when onboarding cookie is complete", () => {
+  const response = runMiddleware(
+    "http://localhost/analytics",
+    "crtv_auth=session-token; crtv_onboarding_completed=1"
+  )
 
-  try {
-    const response = runMiddleware("http://localhost/analytics", "crtv_auth=session-token")
-
-    assert.equal(response.status, 200)
-    assert.equal(response.headers.get("location"), null)
-    assert.equal(response.headers.get("x-middleware-next"), "1")
-  } finally {
-    patchOnboardingState({ usernameCompleted: false })
-  }
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get("location"), null)
+  assert.equal(response.headers.get("x-middleware-next"), "1")
 })
 
 test("middleware allows direct access to /onboarding", () => {

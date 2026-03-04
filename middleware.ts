@@ -1,8 +1,11 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { getOnboardingState } from "@/lib/data/onboarding"
 import { AUTH_ONLY_PATHS, ROUTES } from "@/lib/routing/routes"
 import { sanitizeNextPath } from "@/lib/routing/sanitize-next-path"
+
+function isOnboardingCompleteForRequest(request: NextRequest): boolean {
+  return request.cookies.get("crtv_onboarding_completed")?.value === "1"
+}
 
 export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/workspace") {
@@ -42,8 +45,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    const onboardingState = getOnboardingState()
-    const isOnboardingComplete = onboardingState.usernameCompleted
+    const isOnboardingComplete = isOnboardingCompleteForRequest(request)
 
     if (!isOnboardingComplete) {
       const nextCandidate = `${request.nextUrl.pathname}${request.nextUrl.search}`

@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test"
 import { setAuthedSessionCookie, setOnboardingComplete, setOnboardingIncomplete } from "./helpers/session"
-import { AUTH_ONLY_PATHS } from "@/lib/routing/routes"
 
-const protectedRoutes = [...AUTH_ONLY_PATHS]
+const protectedRoutes = ["/canvas", "/analytics", "/explore", "/following", "/search", "/billing"] as const
 
 test.describe("route access matrix", () => {
   test("logged-out user can access public routes without middleware redirect", async ({ page }) => {
