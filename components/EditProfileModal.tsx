@@ -1,17 +1,11 @@
 import { X } from 'lucide-react';
-import { useState, useRef } from 'react';
 import Image from 'next/image';
-
-interface Profile {
-  name: string;
-  username: string;
-  avatar: string;
-  bio: string;
-}
+import { useRef, useState } from 'react';
+import type { UserProfile } from '@/types/profile';
 
 interface EditProfileModalProps {
-  profile: Profile;
-  onSave: (profile: Profile) => void;
+  profile: UserProfile;
+  onSave: (profile: UserProfile) => void;
   onClose: () => void;
 }
 
@@ -110,7 +104,7 @@ export default function EditProfileModal({ profile, onSave, onClose }: EditProfi
           </button>
           <button
             type="button"
-            onClick={() => onSave({ name, username, avatar, bio })}
+            onClick={() => onSave({ name, username, avatar, bio, viewerMode: profile.viewerMode })}
             className="px-4 py-2 bg-[#F04E2E] hover:bg-[#E03E00] text-white rounded-md text-sm font-semibold transition-colors"
           >
             Save changes

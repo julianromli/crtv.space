@@ -6,4 +6,6 @@ coverage/
 .env*
 !.env.example
 *.tsbuildinfo
+test-results/
 oh-my-opencode.json
+.sisyphus/tmp/*.html

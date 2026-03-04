@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 interface SidebarContextType {
   isMinimized: boolean;
@@ -9,11 +9,11 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-export function SidebarProvider({ children }: { children: React.ReactNode }) {
+export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isMinimized, setIsMinimized] = useState(false);
 
   const toggleSidebar = () => {
-    setIsMinimized(!isMinimized);
+    setIsMinimized((prev) => !prev);
   };
 
   return (

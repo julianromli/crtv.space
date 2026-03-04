@@ -1,0 +1,367 @@
+"use client";
+
+import {
+	Edit2,
+	Grid,
+	Heart,
+	PanelLeft,
+	PlayCircle,
+	Plus,
+	PlusCircle,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import Sidebar from "@/components/Sidebar";
+import { useSidebar } from "@/contexts/SidebarContext";
+import type { PortfolioItem } from "@/types/gallery";
+import type { UserProfile } from "@/types/profile";
+
+const ImageModal = dynamic(() => import("@/components/ImageModal"));
+const EditProfileModal = dynamic(() => import("@/components/EditProfileModal"));
+
+export default function ProfileClientShell({
+	initialProfile,
+	portfolioItems,
+}: {
+	initialProfile: UserProfile;
+	portfolioItems: PortfolioItem[];
+}) {
+	const [selectedImage, setSelectedImage] = useState<PortfolioItem | null>(
+		null,
+	);
+	const [activeTab, setActiveTab] = useState<"image" | "video">("image");
+	const [isFollowing, setIsFollowing] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [profile, setProfile] = useState(initialProfile);
+	const sectionLocks = profile.lockMetadata?.sections;
+	const isPortfolioLocked = sectionLocks?.portfolio === true;
+	const isContactLocked = sectionLocks?.contact === true;
+	const showAuthCta =
+		(isPortfolioLocked || isContactLocked) &&
+		profile.lockMetadata?.ctaHint === "auth_required";
+	const lockHint =
+		profile.lockMetadata?.ctaHint === "auth_required"
+			? "Sign in to unlock this section."
+			: "This section is currently locked.";
+
+	const { toggleSidebar, isMinimized } = useSidebar();
+	const [likedItems, setLikedItems] = useState<Record<number, boolean>>({});
+
+	const toggleLike = (e: React.MouseEvent, id: number) => {
+		e.stopPropagation();
+		setLikedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+	};
+
+	const openAuthModal = () => {
+		setIsAuthModalOpen(true);
+	};
+
+	const closeAuthModal = () => {
+		setIsAuthModalOpen(false);
+	};
+
+	const filteredItems = portfolioItems.filter(
+		(item) => item.type === activeTab,
+	);
+
+	return (
+		<div className="flex h-screen w-full bg-[#121212]">
+			<Sidebar />
+			<main className="flex-1 flex flex-col min-w-0 bg-[#121212] relative">
+				<div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+					<div className="max-w-5xl mx-auto flex items-center justify-between mb-8">
+						<button
+							type="button"
+							onClick={toggleSidebar}
+							className={`text-[#9CA3AF] hover:text-[#F3F4F6] transition-all duration-300 flex-shrink-0 hidden sm:block ${isMinimized ? "rotate-180" : ""}`}
+						>
+							<PanelLeft size={20} />
+						</button>
+
+					<div className="flex items-center gap-3">
+						{showAuthCta && (
+							<button
+								type="button"
+								onClick={openAuthModal}
+								className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2D2D2D] rounded-md hover:bg-[#1E1E1E] transition-colors text-sm font-semibold text-[#F3F4F6]"
+							>
+								Sign In
+							</button>
+						)}
+						<button
+							type="button"
+							className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-[#2D2D2D] rounded-md hover:bg-[#1E1E1E] transition-colors text-sm font-semibold text-[#F3F4F6]"
+							>
+								<PlusCircle size={16} />
+								Invite
+							</button>
+							<Link
+								href="/workspace"
+								className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F04E2E] text-white rounded-md shadow-sm hover:opacity-90 transition-opacity text-sm font-semibold"
+							>
+								<Plus size={16} />
+								New Canvas
+							</Link>
+						</div>
+					</div>
+
+					<div className="max-w-4xl mx-auto flex flex-col items-center mb-16">
+						<div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
+							<div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#1E1E1E] shadow-xl">
+								<Image
+									src={profile.avatar}
+									alt="Profile"
+									width={160}
+									height={160}
+									className="w-full h-full object-cover"
+								/>
+							</div>
+
+							<div className="flex flex-col items-center md:items-start pt-2">
+								<div className="flex flex-col md:flex-row items-center gap-4 mb-2">
+									<h1 className="text-2xl md:text-3xl font-semibold text-[#F3F4F6]">
+										{profile.name}
+									</h1>
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											onClick={() => setIsEditModalOpen(true)}
+											className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] hover:bg-[#2D2D2D] rounded-md text-sm font-semibold text-[#F3F4F6] transition-colors border border-[#2D2D2D]"
+										>
+											<Edit2 size={14} />
+											Edit Profile
+										</button>
+										<button
+											type="button"
+											onClick={() => setIsFollowing(!isFollowing)}
+											className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-semibold transition-colors border ${
+												isFollowing
+													? "bg-transparent border-[#2D2D2D] text-[#F3F4F6] hover:bg-[#1E1E1E]"
+													: "bg-[#F3F4F6] border-[#F3F4F6] text-[#121212] hover:bg-[#E5E7EB]"
+											}`}
+										>
+											{isFollowing ? "Unfollow" : "Follow"}
+										</button>
+									</div>
+								</div>
+								<p className="text-[#9CA3AF] text-base md:text-lg mb-6 font-light">
+									@{profile.username}
+								</p>
+
+								<div className="flex items-center gap-8 text-[#F3F4F6] font-semibold text-sm md:text-base mb-6">
+									<div className="flex gap-1.5">
+										<span className="text-white">1,204</span>{" "}
+										<span className="text-[#9CA3AF] font-light">followers</span>
+									</div>
+									<div className="flex gap-1.5">
+										<span className="text-white">248</span>{" "}
+										<span className="text-[#9CA3AF] font-light">following</span>
+									</div>
+								</div>
+
+								{profile.bio && (
+									<div className="text-sm text-[#F3F4F6] whitespace-pre-wrap font-light leading-relaxed max-w-md">
+										{profile.bio}
+									</div>
+								)}
+
+								<div className="mt-6 w-full max-w-md">
+									<h2 className="text-xs font-semibold uppercase tracking-widest text-[#9CA3AF] mb-2">
+										Contact
+									</h2>
+									{isContactLocked ? (
+										<div className="border border-[#2D2D2D] rounded-lg px-4 py-3 bg-[#161616]">
+											<p className="text-sm text-[#F3F4F6] font-medium">
+												Contact details are locked
+											</p>
+											<p className="text-xs text-[#9CA3AF] mt-1">{lockHint}</p>
+											{showAuthCta && (
+												<button
+													type="button"
+													onClick={openAuthModal}
+													className="mt-3 inline-flex items-center px-3 py-1.5 rounded-md bg-[#F04E2E] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+												>
+													Sign in to view
+												</button>
+											)}
+										</div>
+									) : (
+										<div className="border border-[#2D2D2D] rounded-lg px-4 py-3 bg-[#161616]">
+											<p className="text-sm text-[#F3F4F6]">
+												Open to project collaborations and creator partnerships.
+											</p>
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div className="max-w-5xl mx-auto">
+						<div className="border-t border-[#2D2D2D] mb-6 flex justify-center gap-8">
+							<button
+								type="button"
+								onClick={() => setActiveTab("image")}
+								className={`px-4 py-3 border-t-2 -mt-[1px] text-xs font-semibold uppercase tracking-widest flex items-center gap-2 transition-colors ${
+									activeTab === "image"
+										? "border-[#F3F4F6] text-[#F3F4F6]"
+										: "border-transparent text-[#9CA3AF] hover:text-[#F3F4F6]"
+								}`}
+							>
+								<Grid size={14} />
+								Photo
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("video")}
+								className={`px-4 py-3 border-t-2 -mt-[1px] text-xs font-semibold uppercase tracking-widest flex items-center gap-2 transition-colors ${
+									activeTab === "video"
+										? "border-[#F3F4F6] text-[#F3F4F6]"
+										: "border-transparent text-[#9CA3AF] hover:text-[#F3F4F6]"
+								}`}
+							>
+								<PlayCircle size={14} />
+								Video
+							</button>
+						</div>
+
+						{isPortfolioLocked ? (
+							<div className="flex justify-center mt-8">
+								<div className="w-full max-w-xl border border-[#2D2D2D] rounded-lg px-8 py-8 text-center bg-[#161616]">
+									<p className="text-[#F3F4F6] text-base font-medium">
+										Portfolio is locked
+									</p>
+									<p className="text-[#9CA3AF] text-sm mt-2">{lockHint}</p>
+									{showAuthCta && (
+										<button
+											type="button"
+											onClick={openAuthModal}
+											className="mt-4 inline-flex items-center px-3 py-1.5 rounded-md bg-[#F04E2E] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+										>
+											Sign in to unlock
+										</button>
+									)}
+								</div>
+							</div>
+						) : filteredItems.length > 0 ? (
+							<div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+								{filteredItems.map((item) => (
+									<div
+										key={item.id}
+										className="break-inside-avoid group relative rounded-xl overflow-hidden bg-[#1E1E1E] cursor-pointer border border-[#2D2D2D]/50"
+									>
+										<button
+											type="button"
+											className="absolute inset-0 z-10"
+											aria-label={`Open ${item.alt}`}
+											onClick={() => setSelectedImage(item)}
+										/>
+										<Image
+											src={item.src}
+											alt={item.alt}
+											width={item.width}
+											height={item.height}
+											className="w-full h-auto object-cover transition-opacity duration-300"
+										/>
+										{item.type === "video" && (
+											<div className="absolute top-3 right-3 text-white drop-shadow-md bg-black/30 rounded-full p-1 backdrop-blur-sm">
+												<PlayCircle size={20} fill="rgba(0,0,0,0.5)" />
+											</div>
+										)}
+										<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+										<div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+											<div className="flex items-center gap-1.5">
+												<button
+													type="button"
+													className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-lg transition-colors"
+													onClick={(e) => toggleLike(e, item.id)}
+												>
+													<Heart
+														size={14}
+														className={
+															likedItems[item.id]
+																? "fill-[#F04E2E] text-[#F04E2E]"
+																: ""
+														}
+													/>
+												</button>
+												<button
+													type="button"
+													className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-lg transition-colors"
+													onClick={(e) => {
+														e.stopPropagation();
+													}}
+												>
+													<PlusCircle size={14} />
+												</button>
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="flex justify-center mt-12">
+								<div className="border border-[#2D2D2D] rounded-lg px-8 py-6 text-center text-[#9CA3AF] font-light text-sm">
+									This person hasn&apos;t added any {activeTab}s to their
+									profile
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+			</main>
+			{selectedImage && (
+				<ImageModal
+					image={selectedImage}
+					onClose={() => setSelectedImage(null)}
+				/>
+			)}
+			{isEditModalOpen && (
+				<EditProfileModal
+					profile={profile}
+					onSave={(newProfile) => {
+						setProfile(newProfile);
+						setIsEditModalOpen(false);
+					}}
+					onClose={() => setIsEditModalOpen(false)}
+				/>
+			)}
+			{isAuthModalOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+					<button
+						type="button"
+						className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+						onClick={closeAuthModal}
+						aria-label="Close sign in modal"
+					/>
+					<div className="relative w-full max-w-sm rounded-xl border border-[#2D2D2D] bg-[#161616] p-6 shadow-2xl">
+						<h2 className="text-lg font-semibold text-[#F3F4F6]">Sign in required</h2>
+						<p className="mt-2 text-sm text-[#9CA3AF]">
+							Create an account or sign in to unlock this creator&apos;s private sections.
+						</p>
+						<div className="mt-5 flex items-center justify-end gap-2">
+							<button
+								type="button"
+								onClick={closeAuthModal}
+								className="px-3 py-1.5 rounded-md border border-[#2D2D2D] text-[#F3F4F6] text-sm font-semibold hover:bg-[#1E1E1E] transition-colors"
+							>
+								Maybe later
+							</button>
+							<button
+								type="button"
+								onClick={closeAuthModal}
+								className="px-3 py-1.5 rounded-md bg-[#F04E2E] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+							>
+								Continue
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}

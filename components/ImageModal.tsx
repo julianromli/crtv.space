@@ -2,13 +2,9 @@ import { X, Edit2, Shuffle, Image as ImageIcon, Copy, PlayCircle, Maximize, Scis
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import type { GalleryImage } from '@/types/gallery';
 
-type ModalImage = {
-  src: string;
-  alt: string;
-};
-
-export default function ImageModal({ image, onClose }: { image: ModalImage; onClose: () => void }) {
+export default function ImageModal({ image, onClose }: { image: GalleryImage; onClose: () => void }) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);

@@ -32,6 +32,8 @@ cp .env.example .env.local
 
 - `GEMINI_API_KEY` (required for Gemini API calls)
 - `APP_URL` (app base URL for local or deployed runtime)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (Clerk publishable key)
+- `CLERK_SECRET_KEY` (Clerk secret key)
 
 4. Start the development server:
 
@@ -52,5 +54,7 @@ npm run dev
 ## Project Routes
 
 - `/` - Home gallery
+- `/sign-in` - Clerk sign-in
+- `/sign-up` - Clerk sign-up
 - `/profile` - Profile view
 - `/workspace` - Canvas workspace
