@@ -1,11 +1,16 @@
 import { clerkMiddleware } from "@clerk/nextjs/server"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import { ONBOARDING_COOKIE_NAME } from "@/lib/routing/cookies"
 import { AUTH_ONLY_PATHS, ROUTES } from "@/lib/routing/routes"
 import { sanitizeNextPath } from "@/lib/routing/sanitize-next-path"
 
 function isOnboardingCompleteForRequest(request: NextRequest): boolean {
-  return request.cookies.get("crtv_onboarding_completed")?.value === "1"
+  return request.cookies.get(ONBOARDING_COOKIE_NAME)?.value === "1"
+}
+
+function isAuthOnlyPath(pathname: string): boolean {
+  return AUTH_ONLY_PATHS.some((basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`))
 }
 
 function hasLegacyAuthCookie(request: NextRequest): boolean {
@@ -45,12 +50,13 @@ export default clerkMiddleware(async (auth, request: NextRequest) => {
         path: "/",
         maxAge: 60,
         sameSite: "lax",
+        httpOnly: true,
       })
       return response
     }
   }
 
-  if (AUTH_ONLY_PATHS.includes(request.nextUrl.pathname as (typeof AUTH_ONLY_PATHS)[number])) {
+  if (isAuthOnlyPath(request.nextUrl.pathname)) {
     if (!isAuthenticated) {
       const nextCandidate = `${request.nextUrl.pathname}${request.nextUrl.search}`
       const safeNextPath = sanitizeNextPath(nextCandidate)

@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { NextRequest } from "next/server"
+import { ONBOARDING_COOKIE_NAME } from "@/lib/routing/cookies"
 
 process.env.CLERK_ENCRYPTION_KEY = "12345678901234567890123456789012"
 
@@ -33,9 +34,12 @@ async function runMiddleware(url: string, cookieHeader?: string): Promise<Respon
 test("middleware order: root with auth cookie redirects to /explore", async () => {
   const response = await runMiddleware("http://localhost/", "crtv_auth=session-token")
   const location = response.headers.get("location")
+  const setCookie = response.headers.get("set-cookie")
 
   assert.equal(response.status, 307)
   assert.ok(location)
+  assert.ok(setCookie?.includes("crtv_landing_redirected_to_explore=1"))
+  assert.ok(setCookie?.includes("HttpOnly"))
 
   const redirectUrl = new URL(location)
   assert.notEqual(redirectUrl.pathname, "/")
@@ -66,7 +70,10 @@ test("canonical redirect smoke: /dashboard -> /analytics", async () => {
 })
 
 test("middleware redirects protected routes to onboarding with sanitized next when onboarding cookie is incomplete", async () => {
-  const response = await runMiddleware("http://localhost/explore?tab=latest", "crtv_auth=session-token; crtv_onboarding_completed=0")
+  const response = await runMiddleware(
+    "http://localhost/explore?tab=latest",
+    `crtv_auth=session-token; ${ONBOARDING_COOKIE_NAME}=0`
+  )
   const location = response.headers.get("location")
 
   assert.equal(response.status, 307)
@@ -92,7 +99,7 @@ test("middleware blocks logged-out /analytics access and redirects to /sign-in w
 test("middleware allows authenticated /analytics access when onboarding cookie is complete", async () => {
   const response = await runMiddleware(
     "http://localhost/analytics",
-    "crtv_auth=session-token; crtv_onboarding_completed=1"
+    `crtv_auth=session-token; ${ONBOARDING_COOKIE_NAME}=1`
   )
 
   assert.equal(response.status, 200)
@@ -122,6 +129,25 @@ test("middleware leaves /about publicly accessible for logged-out requests", asy
 
 test("middleware leaves /@faiz-intifada publicly accessible for logged-out requests", async () => {
   const response = await runMiddleware("http://localhost/@faiz-intifada")
+
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get("location"), null)
+})
+
+test("middleware blocks logged-out nested protected routes and preserves redirect_url", async () => {
+  const response = await runMiddleware("http://localhost/canvas/project-123?probe=1")
+  const location = response.headers.get("location")
+
+  assert.equal(response.status, 307)
+  assert.ok(location)
+
+  const redirectUrl = new URL(location)
+  assert.equal(redirectUrl.pathname, "/sign-in")
+  assert.equal(redirectUrl.searchParams.get("redirect_url"), "/canvas/project-123?probe=1")
+})
+
+test("middleware does not treat partial prefix matches as protected routes", async () => {
+  const response = await runMiddleware("http://localhost/canvasx")
 
   assert.equal(response.status, 200)
   assert.equal(response.headers.get("location"), null)

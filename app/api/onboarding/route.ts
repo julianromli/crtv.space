@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/onboarding';
 import { getCurrentProfileUsername } from '@/lib/data/profile';
 import { normalizeHandle, validateHandle } from '@/lib/routing/handle';
+import { ONBOARDING_COOKIE_NAME } from "@/lib/routing/cookies";
 import { createAnalyticsEvent } from '@/lib/analytics/events';
 import { ingestAnalyticsEvent } from '@/lib/analytics/pipeline';
 
@@ -80,7 +81,7 @@ export async function PATCH(request: Request) {
   const response = NextResponse.json({ onboarding });
 
   if (typeof payload.usernameCompleted === "boolean") {
-    response.cookies.set("crtv_onboarding_completed", payload.usernameCompleted ? "1" : "0", {
+    response.cookies.set(ONBOARDING_COOKIE_NAME, payload.usernameCompleted ? "1" : "0", {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "lax",
